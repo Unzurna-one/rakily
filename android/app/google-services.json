@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "24542785835",
+    "project_id": "raki-d74a3",
+    "storage_bucket": "raki-d74a3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:24542785835:android:32759d74c7cadb85fe956e",
+        "android_client_info": {
+          "package_name": "com.rakily"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "24542785835-4ncfbkcgh7tjs8kujflpmualq18qnpln.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAum0VMVHW5-wXDp-DqpiyUReHu8_v3RGo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "24542785835-4ncfbkcgh7tjs8kujflpmualq18qnpln.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
