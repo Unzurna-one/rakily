@@ -121,8 +121,6 @@ const createAccountWithEmailAndPassword = (userDetails, appConfig) => {
     console.log('return new Promise( userData logging ... ', userData);
 
     accountCreationTask(userData).then(response => {
-      console.log('accountCreationTask logging ... ', response);
-
       if (response.error) {
         resolve({ error: response.error });
       } else {

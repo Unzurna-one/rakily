@@ -7,11 +7,12 @@ import {
   View,
 } from 'react-native';
 import ActionSheet from 'react-native-actionsheet';
-import ImageView from 'react-native-image-view';
+import ImageView from 'react-native-image-viewing';
 import * as ImagePicker from 'expo-image-picker';
 import FastImage from 'react-native-fast-image';
 import { useTheme, useTranslations } from 'dopenative';
 import dynamicStyles from './styles';
+import { ConfigProvider } from '../../../config';
 
 const Image = FastImage;
 
@@ -34,7 +35,6 @@ const TNProfilePictureSelector = props => {
   const styles = dynamicStyles(theme, appearance);
 
   const handleProfilePictureClick = url => {
-    console.error('url logging...', url);
     if (url) {
       const isAvatar = url.search('avatar');
       const image = [
@@ -44,6 +44,7 @@ const TNProfilePictureSelector = props => {
           },
         },
       ];
+
       if (isAvatar === -1) {
         setTappedImage(image);
         setIsImageViewerVisible(true);
@@ -57,8 +58,8 @@ const TNProfilePictureSelector = props => {
 
   const onImageError = () => {
     console.log('Error loading profile photo at url ' + profilePictureURL);
-    const defaultProfilePhotoURL =
-      'https://www.iosapptemplates.com/wp-content/uploads/2019/06/empty-avatar.jpg';
+    const defaultProfilePhotoURL = ConfigProvider.defaultPictureProfileUrl;
+    // 'https://www.iosapptemplates.com/wp-content/uploads/2019/06/empty-avatar.jpg';
     setProfilePictureURL(defaultProfilePhotoURL);
   };
 
@@ -175,7 +176,7 @@ const TNProfilePictureSelector = props => {
         />
         <ImageView
           images={tappedImage}
-          onClose={() => setIsImageViewerVisible(false)}
+          isVisible={isImageViewerVisible}
           controls={{ close: closeButton }}
           animationType="fade"
           onImageChange={index => {

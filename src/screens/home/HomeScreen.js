@@ -18,7 +18,6 @@ export const HomeScreen = memo(props => {
   const styles = dynamicStyles(theme, appearance);
 
   useLayoutEffect(() => {
-    console.log('useLayoutEffect logging ...', props);
     const colorSet = theme.colors[appearance];
 
     navigation.setOptions({

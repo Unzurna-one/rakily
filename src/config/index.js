@@ -8,6 +8,8 @@ export const ConfigContext = React.createContext({});
 export const ConfigProvider = ({children}) => {
   const {localized} = useTranslations();
   const config = {
+    defaultPictureProfileUrl:
+      'https://www.iosapptemplates.com/wp-content/uploads/2019/06/empty-avatar.jpg',
     isSMSAuthEnabled: true,
     isGoogleAuthEnabled: true,
     isAppleAuthEnabled: true,
