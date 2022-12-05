@@ -1,4 +1,4 @@
-import React, {memo, useEffect, useLayoutEffect, useCallback} from 'react';
+import React, {memo, useCallback, useEffect, useLayoutEffect} from 'react';
 import {Text, View} from 'react-native';
 import FastImage from 'react-native-fast-image';
 import {useTheme, useTranslations} from 'dopenative';
@@ -9,6 +9,7 @@ import {useAuth} from '../../Core/onboarding/hooks/useAuth';
 
 export const HomeScreen = memo(props => {
   const {navigation} = props;
+
   const currentUser = useCurrentUser();
   const authManager = useAuth();
 
@@ -17,6 +18,7 @@ export const HomeScreen = memo(props => {
   const styles = dynamicStyles(theme, appearance);
 
   useLayoutEffect(() => {
+    console.log('useLayoutEffect logging ...', props);
     const colorSet = theme.colors[appearance];
 
     navigation.setOptions({
@@ -53,7 +55,7 @@ export const HomeScreen = memo(props => {
         },
       ],
     });
-  }, [currentUser]);
+  }, [authManager, currentUser, navigation]);
 
   return (
     <View style={styles.container}>

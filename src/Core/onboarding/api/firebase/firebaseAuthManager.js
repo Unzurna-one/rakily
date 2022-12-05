@@ -1,42 +1,42 @@
-import Geolocation from '@react-native-community/geolocation'
-import * as Location from 'expo-location'
-import { EventRegister } from 'react-native-event-listeners'
-import * as Facebook from 'expo-facebook'
+import Geolocation from '@react-native-community/geolocation';
+import * as Location from 'expo-location';
+import { EventRegister } from 'react-native-event-listeners';
+import * as Facebook from 'expo-facebook';
 import appleAuth, {
   AppleAuthRequestOperation,
   AppleAuthRequestScope,
-} from '@invertase/react-native-apple-authentication'
-import { GoogleSignin } from '@react-native-google-signin/google-signin'
+} from '@invertase/react-native-apple-authentication';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
-import { storageAPI } from '../../../media'
-import * as authAPI from './authClient'
-import { updateUser } from '../../../users'
-import { ErrorCode } from '../ErrorCode'
+import { storageAPI } from '../../../media';
+import * as authAPI from './authClient';
+import { updateUser } from '../../../users';
+import { ErrorCode } from '../ErrorCode';
 
 const defaultProfilePhotoURL =
-  'https://www.iosapptemplates.com/wp-content/uploads/2019/06/empty-avatar.jpg'
+  'https://www.iosapptemplates.com/wp-content/uploads/2019/06/empty-avatar.jpg';
 
 const validateUsernameFieldIfNeeded = (inputFields, appConfig) => {
   return new Promise((resolve, reject) => {
-    const usernamePattern = /^[aA-zZ]\w{3,29}$/
+    const usernamePattern = /^[aA-zZ]\w{3,29}$/;
 
     if (!appConfig.isUsernameFieldEnabled) {
-      resolve({ success: true })
+      resolve({ success: true });
     }
     if (
       appConfig.isUsernameFieldEnabled &&
       !inputFields?.hasOwnProperty('username')
     ) {
-      return resolve({ error: 'Invalid username' })
+      return resolve({ error: 'Invalid username' });
     }
 
     if (!usernamePattern.test(inputFields.username)) {
-      return resolve({ error: 'Invalid username' })
+      return resolve({ error: 'Invalid username' });
     }
 
-    resolve({ success: true })
-  })
-}
+    resolve({ success: true });
+  });
+};
 
 const loginWithEmailAndPassword = (email, password) => {
   return new Promise(function (resolve, _reject) {
@@ -44,30 +44,39 @@ const loginWithEmailAndPassword = (email, password) => {
       if (!response.error) {
         handleSuccessfulLogin({ ...response.user }, false).then(res => {
           // Login successful, push token stored, login credential persisted, so we log the user in.
-          resolve({ user: res.user })
-        })
+          resolve({ user: res.user });
+        });
       } else {
-        resolve({ error: response.error })
+        resolve({ error: response.error });
       }
-    })
-  })
-}
+    });
+  });
+};
 
 const createAccountWithEmailAndPassword = (userDetails, appConfig) => {
-  const { photoFile } = userDetails
+  const { photoFile } = userDetails;
+
   const accountCreationTask = userData => {
+    console.log('>>>>>>>>>>> userData ... ', userData);
+
     return new Promise((resolve, _reject) => {
       authAPI
         .registerWithEmail(userData, appConfig.appIdentifier)
         .then(async response => {
+          console.log('registerWithEmail logging ... ', response);
+
           if (response.error) {
-            resolve({ error: response.error })
+            resolve({ error: response.error });
           } else {
             // We created the user succesfully, time to upload the profile photo and update the users table with the correct URL
-            let user = response.user
+            let user = response.user;
+            console.log('user registerWithEmail logging ... ', user);
+
             if (photoFile) {
               storageAPI.processAndUploadMediaFile(photoFile).then(response => {
                 if (response.error) {
+                  console.log('processAndUploadMediaFile  logging ... ', user);
+
                   // if account gets created, but photo upload fails, we still log the user in
                   resolve({
                     nonCriticalError: response.error,
@@ -75,52 +84,58 @@ const createAccountWithEmailAndPassword = (userDetails, appConfig) => {
                       ...user,
                       profilePictureURL: defaultProfilePhotoURL,
                     },
-                  })
+                  });
                 } else {
                   authAPI
                     .updateProfilePhoto(user.id, response.downloadURL)
                     .then(_result => {
+                      console.log('updateProfilePhoto  logging ... ', user);
+
                       resolve({
                         user: {
                           ...user,
                           profilePictureURL: response.downloadURL,
                         },
-                      })
-                    })
+                      });
+                    });
                 }
-              })
+              });
             } else {
               resolve({
                 user: {
                   ...response.user,
                   profilePictureURL: defaultProfilePhotoURL,
                 },
-              })
+              });
             }
           }
-        })
-    })
-  }
+        });
+    });
+  };
 
   return new Promise(function (resolve, _reject) {
     const userData = {
       ...userDetails,
       profilePictureURL: defaultProfilePhotoURL,
-    }
+    };
+    console.log('return new Promise( userData logging ... ', userData);
+
     accountCreationTask(userData).then(response => {
+      console.log('accountCreationTask logging ... ', response);
+
       if (response.error) {
-        resolve({ error: response.error })
+        resolve({ error: response.error });
       } else {
         // We signed up successfully, so we are logging the user in (as well as updating push token, persisting credential,s etc.)
         handleSuccessfulLogin(response.user, true).then(response => {
           resolve({
             ...response,
-          })
-        })
+          });
+        });
       }
-    })
-  })
-}
+    });
+  });
+};
 
 const retrievePersistedAuthUser = () => {
   return new Promise(resolve => {
@@ -130,30 +145,30 @@ const retrievePersistedAuthUser = () => {
           // Persisted login successful, push token stored, login credential persisted, so we log the user in.
           resolve({
             user: res.user,
-          })
-        })
+          });
+        });
       } else {
-        resolve(null)
+        resolve(null);
       }
-    })
-  })
-}
+    });
+  });
+};
 
 const sendPasswordResetEmail = email => {
   return new Promise(resolve => {
-    authAPI.sendPasswordResetEmail(email)
-    resolve()
-  })
-}
+    authAPI.sendPasswordResetEmail(email);
+    resolve();
+  });
+};
 
 const logout = user => {
   const userData = {
     ...user,
     isOnline: false,
-  }
-  updateUser(user.id || user.userID, userData)
-  authAPI.logout()
-}
+  };
+  updateUser(user.id || user.userID, userData);
+  authAPI.logout();
+};
 
 const loginOrSignUpWithApple = appConfig => {
   return new Promise(async (resolve, _reject) => {
@@ -164,9 +179,9 @@ const loginOrSignUpWithApple = appConfig => {
           AppleAuthRequestScope.EMAIL,
           AppleAuthRequestScope.FULL_NAME,
         ],
-      })
+      });
 
-      const { identityToken, nonce } = appleAuthRequestResponse
+      const { identityToken, nonce } = appleAuthRequestResponse;
 
       authAPI
         .loginWithApple(identityToken, nonce, appConfig.appIdentifier)
@@ -175,7 +190,7 @@ const loginOrSignUpWithApple = appConfig => {
             const newResponse = {
               user: { ...response.user },
               accountCreated: response.accountCreated,
-            }
+            };
             handleSuccessfulLogin(
               newResponse.user,
               response.accountCreated,
@@ -183,26 +198,26 @@ const loginOrSignUpWithApple = appConfig => {
               // resolve(response);
               resolve({
                 ...response,
-              })
-            })
+              });
+            });
           } else {
-            resolve({ error: ErrorCode.appleAuthFailed })
+            resolve({ error: ErrorCode.appleAuthFailed });
           }
-        })
+        });
     } catch (error) {
-      console.log(error)
-      resolve({ error: ErrorCode.appleAuthFailed })
+      console.log(error);
+      resolve({ error: ErrorCode.appleAuthFailed });
     }
-  })
-}
+  });
+};
 
 const loginOrSignUpWithGoogle = appConfig => {
   GoogleSignin.configure({
     webClientId: appConfig.webClientId,
-  })
+  });
   return new Promise(async (resolve, _reject) => {
     try {
-      const { idToken } = await GoogleSignin.signIn()
+      const { idToken } = await GoogleSignin.signIn();
       authAPI
         .loginWithGoogle(idToken, appConfig.appIdentifier)
         .then(async response => {
@@ -210,7 +225,7 @@ const loginOrSignUpWithGoogle = appConfig => {
             const newResponse = {
               user: { ...response.user },
               accountCreated: response.accountCreated,
-            }
+            };
             handleSuccessfulLogin(
               newResponse.user,
               response.accountCreated,
@@ -218,30 +233,30 @@ const loginOrSignUpWithGoogle = appConfig => {
               // resolve(response);
               resolve({
                 ...response,
-              })
-            })
+              });
+            });
           } else {
-            resolve({ error: ErrorCode.googleSigninFailed })
+            resolve({ error: ErrorCode.googleSigninFailed });
           }
-        })
+        });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       resolve({
         error: ErrorCode.googleSigninFailed,
-      })
+      });
     }
-  })
-}
+  });
+};
 
 const loginOrSignUpWithFacebook = appConfig => {
-  Facebook.initializeAsync(appConfig.facebookIdentifier)
+  Facebook.initializeAsync(appConfig.facebookIdentifier);
 
   return new Promise(async (resolve, _reject) => {
     try {
       const { type, token, expires, permissions, declinedPermissions } =
         await Facebook.logInWithReadPermissionsAsync({
           permissions: ['public_profile', 'email'],
-        })
+        });
 
       if (type === 'success') {
         // Get the user's name using Facebook's Graph API
@@ -254,7 +269,7 @@ const loginOrSignUpWithFacebook = appConfig => {
               const newResponse = {
                 user: { ...response.user },
                 accountCreated: response.accountCreated,
-              }
+              };
               handleSuccessfulLogin(
                 newResponse.user,
                 response.accountCreated,
@@ -262,43 +277,43 @@ const loginOrSignUpWithFacebook = appConfig => {
                 // resolve(response);
                 resolve({
                   ...response,
-                })
-              })
+                });
+              });
             } else {
-              resolve({ error: ErrorCode.fbAuthFailed })
+              resolve({ error: ErrorCode.fbAuthFailed });
             }
-          })
+          });
       } else {
-        resolve({ error: ErrorCode.fbAuthCancelled })
+        resolve({ error: ErrorCode.fbAuthCancelled });
       }
     } catch (error) {
-      resolve({ error: ErrorCode.fbAuthFailed })
+      resolve({ error: ErrorCode.fbAuthFailed });
     }
-  })
-}
+  });
+};
 
 const sendSMSToPhoneNumber = phoneNumber => {
-  return authAPI.sendSMSToPhoneNumber(phoneNumber)
-}
+  return authAPI.sendSMSToPhoneNumber(phoneNumber);
+};
 
 const onVerification = phone => {
-  authAPI.onVerificationChanged(phone)
-}
+  authAPI.onVerificationChanged(phone);
+};
 
 const loginWithSMSCode = (smsCode, verificationID) => {
   return new Promise(function (resolve, _reject) {
     authAPI.loginWithSMSCode(smsCode, verificationID).then(response => {
       if (response.error) {
-        resolve({ error: response.error })
+        resolve({ error: response.error });
       } else {
         // successful phone number login, we fetch the push token
         handleSuccessfulLogin(response.user, false).then(response => {
-          resolve(response)
-        })
+          resolve(response);
+        });
       }
-    })
-  })
-}
+    });
+  });
+};
 
 const registerWithPhoneNumber = (
   userDetails,
@@ -306,7 +321,7 @@ const registerWithPhoneNumber = (
   verificationID,
   appIdentifier,
 ) => {
-  const { photoFile } = userDetails
+  const { photoFile } = userDetails;
   const accountCreationTask = userData => {
     return new Promise(function (resolve, _reject) {
       authAPI
@@ -318,10 +333,10 @@ const registerWithPhoneNumber = (
         )
         .then(response => {
           if (response.error) {
-            resolve({ error: response.error })
+            resolve({ error: response.error });
           } else {
             // We created the user succesfully, time to upload the profile photo and update the users table with the correct URL
-            let user = response.user
+            let user = response.user;
             if (photoFile) {
               storageAPI.processAndUploadMediaFile(photoFile).then(response => {
                 if (response.error) {
@@ -332,7 +347,7 @@ const registerWithPhoneNumber = (
                       ...user,
                       profilePictureURL: defaultProfilePhotoURL,
                     },
-                  })
+                  });
                 } else {
                   authAPI
                     .updateProfilePhoto(user.id, response.downloadURL)
@@ -342,39 +357,39 @@ const registerWithPhoneNumber = (
                           ...user,
                           profilePictureURL: response.downloadURL,
                         },
-                      })
-                    })
+                      });
+                    });
                 }
-              })
+              });
             } else {
               resolve({
                 user: {
                   ...response.user,
                   profilePictureURL: defaultProfilePhotoURL,
                 },
-              })
+              });
             }
           }
-        })
-    })
-  }
+        });
+    });
+  };
 
   return new Promise(function (resolve, _reject) {
     const userData = {
       ...userDetails,
       profilePictureURL: defaultProfilePhotoURL,
-    }
+    };
     accountCreationTask(userData).then(response => {
       if (response.error) {
-        resolve({ error: response.error })
+        resolve({ error: response.error });
       } else {
         handleSuccessfulLogin(response.user, true).then(response => {
-          resolve(response)
-        })
+          resolve(response);
+        });
       }
-    })
-  })
-}
+    });
+  });
+};
 
 const handleSuccessfulLogin = (user, accountCreated) => {
   // After a successful login, we fetch & store the device token for push notifications, location, online status, etc.
@@ -382,25 +397,25 @@ const handleSuccessfulLogin = (user, accountCreated) => {
   return fetchAndStoreExtraInfoUponLogin(user, accountCreated).then(
     () =>
       new Promise(resolve => {
-        resolve({ user: { ...user } })
+        resolve({ user: { ...user } });
       }),
-  )
-}
+  );
+};
 
 const fetchAndStoreExtraInfoUponLogin = async (user, accountCreated) => {
-  await authAPI.fetchAndStorePushTokenIfPossible(user)
+  await authAPI.fetchAndStorePushTokenIfPossible(user);
 
   getCurrentLocation().then(async location => {
-    const latitude = location.coords.latitude
-    const longitude = location.coords.longitude
-    let locationData = {}
+    const latitude = location.coords.latitude;
+    const longitude = location.coords.longitude;
+    let locationData = {};
     if (location) {
       locationData = {
         location: {
           latitude: latitude,
           longitude: longitude,
         },
-      }
+      };
       if (accountCreated) {
         locationData = {
           ...locationData,
@@ -408,37 +423,38 @@ const fetchAndStoreExtraInfoUponLogin = async (user, accountCreated) => {
             latitude: latitude,
             longitude: longitude,
           },
-        }
+        };
       }
     }
 
     const userData = {
       ...locationData,
       isOnline: true,
-    }
+    };
 
-    await updateUser(user.id || user.userID, userData)
-  })
-}
+    await updateUser(user.id || user.userID, userData);
+  });
+};
 
 const getCurrentLocation = () => {
   return new Promise(async resolve => {
-    let { status } = await Location.requestForegroundPermissionsAsync()
+    let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      resolve({ coords: { latitude: '', longitude: '' } })
-      return
+      resolve({ coords: { latitude: '', longitude: '' } });
+      return;
     }
+    console.log('get location ...');
 
     Geolocation.getCurrentPosition(
       location => {
-        console.log(location)
-        resolve(location)
+        console.log(location);
+        resolve(location);
       },
       error => {
-        EventRegister.emit('get_current_position_failed')
-        console.log(error)
+        EventRegister.emit('get_current_position_failed');
+        console.log(error);
       },
-    )
+    );
 
     // setRegion(location.coords);
     // onLocationChange(location.coords);
@@ -448,12 +464,12 @@ const getCurrentLocation = () => {
     //     () => resolve({ coords: { latitude: "", longitude: "" } }),
     //     { enableHighAccuracy: false, timeout: 20000, maximumAge: 1000 }
     // );
-  })
-}
+  });
+};
 
 const deleteUser = (userID, callback) => {
-  authAPI.removeUser(userID).then(response => callback(response))
-}
+  authAPI.removeUser(userID).then(response => callback(response));
+};
 
 const authManager = {
   validateUsernameFieldIfNeeded,
@@ -470,6 +486,6 @@ const authManager = {
   registerWithPhoneNumber,
   onVerification,
   loginOrSignUpWithGoogle,
-}
+};
 
-export default authManager
+export default authManager;

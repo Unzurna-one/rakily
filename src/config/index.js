@@ -1,6 +1,5 @@
 import React, {useContext} from 'react';
 import {useTranslations} from 'dopenative';
-import {Platform} from 'react-native';
 
 const regexForNames = /^[a-zA-Z]{2,25}$/;
 
@@ -14,12 +13,12 @@ export const ConfigProvider = ({children}) => {
     isAppleAuthEnabled: true,
     isFacebookAuthEnabled: true,
     forgotPasswordEnabled: true,
-    appIdentifier: `io.instamobile.rn.${Platform.OS}`,
+    appIdentifier: 'com.rakily',
     facebookIdentifier: '285315185217069',
     webClientId:
       '1099201876026-7p9f7c1ukg55958ck45fc0bn0luilka4.apps.googleusercontent.com',
     onboardingConfig: {
-      welcomeTitle: localized('Instamobile'),
+      welcomeTitle: localized('Rakily'),
       welcomeCaption: localized(
         'Use this codebase to start a new Firebase mobile app in minutes.',
       ),

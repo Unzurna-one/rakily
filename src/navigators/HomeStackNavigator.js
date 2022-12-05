@@ -6,6 +6,7 @@ import {HomeScreen} from '../screens';
 const MainStack = createStackNavigator();
 const MainStackNavigator = () => {
   const {localized} = useTranslations();
+  console.log('MainStackNavigator logging...', localized);
   return (
     <MainStack.Navigator
       screenOptions={{

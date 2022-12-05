@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import {
   Alert,
   Image,
@@ -7,68 +7,68 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native'
-import Button from 'react-native-button'
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import { useDispatch } from 'react-redux'
-import { useTheme, useTranslations } from 'dopenative'
-import dynamicStyles from './styles'
-import TNActivityIndicator from '../../../truly-native/TNActivityIndicator'
-import TNProfilePictureSelector from '../../../truly-native/TNProfilePictureSelector/TNProfilePictureSelector'
-import { setUserData } from '../../redux/auth'
-import { localizedErrorMessage } from '../../api/ErrorCode'
-import TermsOfUseView from '../../components/TermsOfUseView'
-import { useOnboardingConfig } from '../../hooks/useOnboardingConfig'
-import { useAuth } from '../../hooks/useAuth'
+} from 'react-native';
+import Button from 'react-native-button';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useDispatch } from 'react-redux';
+import { useTheme, useTranslations } from 'dopenative';
+import dynamicStyles from './styles';
+import TNActivityIndicator from '../../../truly-native/TNActivityIndicator';
+import TNProfilePictureSelector from '../../../truly-native/TNProfilePictureSelector/TNProfilePictureSelector';
+import { setUserData } from '../../redux/auth';
+import { localizedErrorMessage } from '../../api/ErrorCode';
+import TermsOfUseView from '../../components/TermsOfUseView';
+import { useOnboardingConfig } from '../../hooks/useOnboardingConfig';
+import { useAuth } from '../../hooks/useAuth';
 
 const SignupScreen = props => {
-  const { navigation } = props
-  const authManager = useAuth()
-  const dispatch = useDispatch()
+  const { navigation } = props;
+  const authManager = useAuth();
+  const dispatch = useDispatch();
 
-  const { config } = useOnboardingConfig()
-  const { localized } = useTranslations()
-  const { theme, appearance } = useTheme()
-  const styles = dynamicStyles(theme, appearance)
+  const { config } = useOnboardingConfig();
+  const { localized } = useTranslations();
+  const { theme, appearance } = useTheme();
+  const styles = dynamicStyles(theme, appearance);
 
-  const [inputFields, setInputFields] = useState({})
+  const [inputFields, setInputFields] = useState({});
 
-  const [profilePictureFile, setProfilePictureFile] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [profilePictureFile, setProfilePictureFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const validateEmail = text => {
     let reg =
-      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    return reg.test(String(text).toLowerCase()) ? true : false
-  }
+      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return reg.test(String(text).toLowerCase()) ? true : false;
+  };
 
   const validatePassword = text => {
-    let reg = /^(?=.*[A-Z])(?=.*[a-z])/
-    return reg.test(String(text)) ? true : false
-  }
+    let reg = /^(?=.*[A-Z])(?=.*[a-z])/;
+    return reg.test(String(text)) ? true : false;
+  };
 
   const trimFields = fields => {
     let trimmedFields = {};
     Object.keys(fields).forEach(key => {
       if (fields[key]) {
-        trimmedFields[key] = fields[key].trim()
+        trimmedFields[key] = fields[key].trim();
       }
-    })
-    return trimmedFields
-  }
+    });
+    return trimmedFields;
+  };
 
   const onRegister = async () => {
     const { error: usernameError } =
-      await authManager.validateUsernameFieldIfNeeded(inputFields, config)
+      await authManager.validateUsernameFieldIfNeeded(inputFields, config);
     if (usernameError) {
       Alert.alert('', localized(usernameError), [{ text: localized('OK') }], {
         cancelable: false,
-      })
+      });
       setInputFields(prevFields => ({
         ...prevFields,
         password: '',
-      }))
-      return
+      }));
+      return;
     }
 
     if (!validateEmail(inputFields?.email?.trim())) {
@@ -79,8 +79,8 @@ const SignupScreen = props => {
         {
           cancelable: false,
         },
-      )
-      return
+      );
+      return;
     }
 
     if (inputFields?.password?.trim() == '') {
@@ -91,12 +91,12 @@ const SignupScreen = props => {
         {
           cancelable: false,
         },
-      )
+      );
       setInputFields(prevFields => ({
         ...prevFields,
         password: '',
-      }))
-      return
+      }));
+      return;
     }
 
     if (inputFields?.password?.trim()?.length < 6) {
@@ -109,41 +109,50 @@ const SignupScreen = props => {
         {
           cancelable: false,
         },
-      )
+      );
       setInputFields(prevFields => ({
         ...prevFields,
         password: '',
-      }))
-      return
+      }));
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     const userDetails = {
       ...trimFields(inputFields),
       photoFile: profilePictureFile,
       appIdentifier: config.appIdentifier,
-    }
+    };
     if (userDetails.username) {
-      userDetails.username = userDetails.username?.toLowerCase()
+      userDetails.username = userDetails.username?.toLowerCase();
     }
-    console.log('FARID userDetails ... ' , userDetails)
-    console.log('FARID config ... ' , config)
+    console.log('FARID userDetails ... ', userDetails);
+    console.log('FARID config ... ', config);
 
     authManager
       .createAccountWithEmailAndPassword(userDetails, config)
       .then(response => {
-        console.log('FARID logging ... ', response)
-        const user = response.user
+        const user = response.user;
         if (user) {
-          dispatch(setUserData({ user }))
-          Keyboard.dismiss()
+          dispatch(setUserData({ user }));
+
+          Keyboard.dismiss();
+          console.log(
+            'createAccountWithEmailAndPassword logging ... ',
+            response,
+          );
+
           navigation.reset({
             index: 0,
             routes: [{ name: 'MainStack', params: { user } }],
-          })
+          });
+
+          console.log('navigation.reset logging ... ', response);
         } else {
-          setLoading(false)
+          setLoading(false);
+          console.log('user?! config ... ', user);
+
           Alert.alert(
             '',
             localizedErrorMessage(response.error, localized),
@@ -151,23 +160,25 @@ const SignupScreen = props => {
             {
               cancelable: false,
             },
-          )
+          );
         }
       })
       .catch(error => {
-        const errorCode = error.code
-        const errorMessage = error.message
-        console.log('FARID errrrrrrror ... ', error)
-
-      })
-  }
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(
+          'createAccountWithEmailAndPassword( errrrrrrror ... ',
+          error,
+        );
+      });
+  };
 
   const onChangeInputFields = (text, key) => {
     setInputFields(prevFields => ({
       ...prevFields,
       [key]: text,
-    }))
-  }
+    }));
+  };
 
   const renderInputField = (field, index) => {
     return (
@@ -183,8 +194,8 @@ const SignupScreen = props => {
         underlineColorAndroid="transparent"
         autoCapitalize={field.autoCapitalize}
       />
-    )
-  }
+    );
+  };
 
   const renderSignupWithEmail = () => {
     return (
@@ -197,8 +208,8 @@ const SignupScreen = props => {
           {localized('Sign Up')}
         </Button>
       </>
-    )
-  }
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -231,7 +242,7 @@ const SignupScreen = props => {
       </KeyboardAwareScrollView>
       {loading && <TNActivityIndicator />}
     </View>
-  )
-}
+  );
+};
 
-export default SignupScreen
+export default SignupScreen;

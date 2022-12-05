@@ -1,12 +1,13 @@
-import messaging from '@react-native-firebase/messaging'
-import auth from '@react-native-firebase/auth'
-import firestore from '@react-native-firebase/firestore'
-import { updateUser } from '../../../users'
-import { ErrorCode } from '../ErrorCode'
-import { getUnixTimeStamp } from '../../../helpers/timeFormat'
-import { reject } from 'lodash/collection'
+import messaging from '@react-native-firebase/messaging';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import { updateUser } from '../../../users';
+import { ErrorCode } from '../ErrorCode';
+import { getUnixTimeStamp } from '../../../helpers/timeFormat';
 
-const usersRef = firestore().collection('users')
+import { reject } from 'lodash/collection';
+
+const usersRef = firestore().collection('users');
 
 const handleUserFromAuthStateChanged = (user, resolve) => {
   if (user) {
@@ -14,51 +15,57 @@ const handleUserFromAuthStateChanged = (user, resolve) => {
       .doc(user.uid)
       .get()
       .then(document => {
-        const userData = document.data()
-        resolve({ ...userData, id: user.uid, userID: user.uid })
+        const userData = document.data();
+        resolve({ ...userData, id: user.uid, userID: user.uid });
       })
       .catch(error => {
-        resolve(null)
-      })
+        resolve(null);
+      });
   } else {
-    resolve(null)
+    resolve(null);
   }
-}
+};
 
 export const retrievePersistedAuthUser = () => {
   return new Promise(resolve => {
     return auth().onAuthStateChanged(user => {
-      return handleUserFromAuthStateChanged(user, resolve)
-    })
-  })
-}
+      return handleUserFromAuthStateChanged(user, resolve);
+    });
+  });
+};
 
 export const sendPasswordResetEmail = email => {
-  auth().sendPasswordResetEmail(email)
-}
+  auth().sendPasswordResetEmail(email);
+};
 
 export const checkUniqueUsername = username => {
+  console.log('checkUniqueUsername logging ... ', username);
+
   return new Promise(resolve => {
     if (!username) {
-      resolve()
+      resolve();
     }
     usersRef
       .where('username', '==', username?.toLowerCase())
       .get()
       .then(querySnapshot => {
+        console.log('usersRef logging ... ', querySnapshot);
+
         if (querySnapshot?.docs.length <= 0) {
           // doesn't exist
-          resolve({ isUnique: true })
+          resolve({ isUnique: true });
         } else {
           // does exist
-          resolve({ taken: true })
+          resolve({ taken: true });
         }
       })
       .catch(error => {
-        reject(error)
-      })
-  })
-}
+        console.log('usersRef error ... ', error);
+
+        reject(error);
+      });
+  });
+};
 
 export const registerWithEmail = (userDetails, appIdentifier) => {
   const {
@@ -71,20 +78,28 @@ export const registerWithEmail = (userDetails, appIdentifier) => {
     profilePictureURL,
     location,
     signUpLocation,
-  } = userDetails
+  } = userDetails;
   return new Promise(function (resolve, _reject) {
     auth()
       .createUserWithEmailAndPassword(email, password)
       .then(async response => {
-        const usernameResponse = await checkUniqueUsername(username)
+        console.log('registerWithEmail logging ... ', response);
+
+        const usernameResponse = await checkUniqueUsername(username);
+        console.log('usernameResponse logging ... ', usernameResponse);
 
         if (usernameResponse?.taken) {
-          auth().currentUser.delete()
-          return resolve({ error: ErrorCode.usernameInUse })
+          await auth().currentUser.delete();
+          console.log(
+            'usernameResponse?.taken logging ... ',
+            usernameResponse?.taken,
+          );
+
+          return resolve({ error: ErrorCode.usernameInUse });
         }
 
-        const timestamp = getUnixTimeStamp()
-        const uid = response.user.uid
+        const timestamp = getUnixTimeStamp();
+        const uid = response.user.uid;
 
         const data = {
           id: uid,
@@ -99,95 +114,103 @@ export const registerWithEmail = (userDetails, appIdentifier) => {
           signUpLocation: signUpLocation || '',
           appIdentifier,
           createdAt: timestamp,
-        }
+        };
+
+        console.log('uid:', uid);
+        console.log('data:', data);
+
         usersRef
           .doc(uid)
           .set(data)
-          .then(() => {
-            resolve({ user: data })
+          .then(s => {
+            console.log('_success:', s);
+
+            resolve({ user: data });
           })
           .catch(error => {
-            alert(error)
-            resolve({ error: ErrorCode.serverError })
-          })
+            console.log('_error:', error);
+
+            alert(error);
+            resolve({ error: ErrorCode.serverError });
+          });
       })
       .catch(error => {
-        console.log('_error:', error)
-        let errorCode = ErrorCode.serverError
+        console.log('_error:', error);
+        let errorCode = ErrorCode.serverError;
         if (error.code === 'auth/email-already-in-use') {
-          errorCode = ErrorCode.emailInUse
+          errorCode = ErrorCode.emailInUse;
         }
-        resolve({ error: errorCode })
-      })
-  })
-}
+        resolve({ error: errorCode });
+      });
+  });
+};
 
 export const loginWithEmailAndPassword = async (email, password) => {
   return new Promise(function (resolve, reject) {
     auth()
       .signInWithEmailAndPassword(email, password)
       .then(response => {
-        const uid = response.user.uid
+        const uid = response.user.uid;
 
         const userData = {
           email,
           id: uid,
-        }
+        };
         usersRef
           .doc(uid)
           .get()
           .then(function (firestoreDocument) {
             if (!firestoreDocument.exists) {
-              resolve({ errorCode: ErrorCode.noUser })
-              return
+              resolve({ errorCode: ErrorCode.noUser });
+              return;
             }
-            const user = firestoreDocument.data()
+            const user = firestoreDocument.data();
             const newUserData = {
               ...userData,
               ...user,
-            }
-            resolve({ user: newUserData })
+            };
+            resolve({ user: newUserData });
           })
           .catch(function (_error) {
-            console.log('_error:', _error)
-            resolve({ error: ErrorCode.serverError })
-          })
+            console.log('_error:', _error);
+            resolve({ error: ErrorCode.serverError });
+          });
       })
       .catch(error => {
-        console.log('error:', error)
-        let errorCode = ErrorCode.serverError
+        console.log('error:', error);
+        let errorCode = ErrorCode.serverError;
         switch (error.code) {
           case 'auth/wrong-password':
-            errorCode = ErrorCode.invalidPassword
-            break
+            errorCode = ErrorCode.invalidPassword;
+            break;
           case 'auth/network-request-failed':
-            errorCode = ErrorCode.serverError
-            break
+            errorCode = ErrorCode.serverError;
+            break;
           case 'auth/user-not-found':
-            errorCode = ErrorCode.noUser
-            break
+            errorCode = ErrorCode.noUser;
+            break;
           default:
-            errorCode = ErrorCode.serverError
+            errorCode = ErrorCode.serverError;
         }
-        resolve({ error: errorCode })
-      })
-  })
-}
+        resolve({ error: errorCode });
+      });
+  });
+};
 
 const signInWithCredential = (credential, appIdentifier, socialAuthType) => {
   return new Promise((resolve, _reject) => {
     auth()
       .signInWithCredential(credential)
       .then(response => {
-        const isNewUser = response.additionalUserInfo.isNewUser
+        const isNewUser = response.additionalUserInfo.isNewUser;
         const { first_name, last_name, family_name, given_name } =
-          response.additionalUserInfo.profile
-        const { uid, email, phoneNumber, photoURL } = response.user
+          response.additionalUserInfo.profile;
+        const { uid, email, phoneNumber, photoURL } = response.user;
         const defaultProfilePhotoURL =
-          'https://www.iosapptemplates.com/wp-content/uploads/2019/06/empty-avatar.jpg'
+          'https://www.iosapptemplates.com/wp-content/uploads/2019/06/empty-avatar.jpg';
 
         if (isNewUser) {
-          const timestamp = getUnixTimeStamp()
+          const timestamp = getUnixTimeStamp();
           const userData = {
             id: uid,
             email: email || '',
@@ -199,7 +222,7 @@ const signInWithCredential = (credential, appIdentifier, socialAuthType) => {
             appIdentifier,
             createdAt: timestamp,
             ...(socialAuthType ? { socialAuthType } : {}),
-          }
+          };
           usersRef
             .doc(uid)
             .set(userData)
@@ -207,63 +230,63 @@ const signInWithCredential = (credential, appIdentifier, socialAuthType) => {
               resolve({
                 user: { ...userData, id: uid, userID: uid },
                 accountCreated: true,
-              })
-            })
+              });
+            });
         }
         usersRef
           .doc(uid)
           .get()
           .then(document => {
-            const userData = document.data()
+            const userData = document.data();
             resolve({
               user: { ...userData, id: uid, userID: uid },
               accountCreated: false,
-            })
-          })
+            });
+          });
       })
       .catch(_error => {
-        console.log(_error)
-        resolve({ error: ErrorCode.serverError })
-      })
-  })
-}
+        console.log(_error);
+        resolve({ error: ErrorCode.serverError });
+      });
+  });
+};
 
 export const loginWithApple = (identityToken, nonce, appIdentifier) => {
   const appleCredential = auth.AppleAuthProvider.credential(
     identityToken,
     nonce,
-  )
+  );
 
   return new Promise((resolve, _reject) => {
     signInWithCredential(appleCredential, appIdentifier, 'Apple').then(
       response => {
-        resolve(response)
+        resolve(response);
       },
-    )
-  })
-}
+    );
+  });
+};
 
 export const loginWithFacebook = (accessToken, appIdentifier) => {
-  const credential = auth.FacebookAuthProvider.credential(accessToken)
+  const credential = auth.FacebookAuthProvider.credential(accessToken);
 
   return new Promise((resolve, _reject) => {
     signInWithCredential(credential, appIdentifier, 'Facebook').then(
       response => {
-        resolve(response)
+        resolve(response);
       },
-    )
-  })
-}
+    );
+  });
+};
 
 export const loginWithGoogle = (idToken, appIdentifier) => {
-  const credential = auth.GoogleAuthProvider.credential(idToken)
+  const credential = auth.GoogleAuthProvider.credential(idToken);
 
   return new Promise((resolve, _reject) => {
     signInWithCredential(credential, appIdentifier, 'Google').then(response => {
-      resolve(response)
-    })
-  })
-}
+      resolve(response);
+    });
+  });
+};
 
 export const onVerificationChanged = phone => {
   auth()
@@ -271,34 +294,34 @@ export const onVerificationChanged = phone => {
     .on(
       'state_changed',
       phoneAuthSnapshot => {
-        console.log('State: ', phoneAuthSnapshot.state)
+        console.log('State: ', phoneAuthSnapshot.state);
       },
       error => {
-        console.error(error)
+        console.error(error);
       },
       phoneAuthSnapshot => {
-        console.log(phoneAuthSnapshot)
+        console.log(phoneAuthSnapshot);
       },
-    )
-}
+    );
+};
 
 export const retrieveUserByPhone = phone => {
   return new Promise(resolve => {
     if (!phone) {
-      resolve()
+      resolve();
     }
     usersRef
       .where('phone', '==', phone)
       .get()
       .then(querySnapshot => {
         if (querySnapshot?.docs.length <= 0) {
-          resolve({ error: true })
+          resolve({ error: true });
         } else {
-          resolve({ success: true })
+          resolve({ success: true });
         }
-      })
-  })
-}
+      });
+  });
+};
 
 export const sendSMSToPhoneNumber = phoneNumber => {
   return new Promise(function (resolve, _reject) {
@@ -307,43 +330,43 @@ export const sendSMSToPhoneNumber = phoneNumber => {
       .then(function (confirmationResult) {
         // SMS sent. Prompt user to type the code from the message, then sign the
         // user in with confirmationResult.confirm(code).
-        resolve({ confirmationResult })
+        resolve({ confirmationResult });
       })
       .catch(function (_error) {
-        console.log(_error)
-        console.warn(_error)
-        resolve({ error: ErrorCode.smsNotSent })
-      })
-  })
-}
+        console.log(_error);
+        console.warn(_error);
+        resolve({ error: ErrorCode.smsNotSent });
+      });
+  });
+};
 
 export const loginWithSMSCode = (smsCode, verificationID) => {
-  const credential = auth.PhoneAuthProvider.credential(verificationID, smsCode)
+  const credential = auth.PhoneAuthProvider.credential(verificationID, smsCode);
   return new Promise(function (resolve, _reject) {
     auth()
       .signInWithCredential(credential)
       .then(result => {
-        const { user } = result
+        const { user } = result;
         usersRef
           .doc(user.uid)
           .get()
           .then(function (firestoreDocument) {
             if (!firestoreDocument.exists) {
-              resolve({ errorCode: ErrorCode.noUser })
-              return
+              resolve({ errorCode: ErrorCode.noUser });
+              return;
             }
-            const userData = firestoreDocument.data()
-            resolve({ user: userData })
+            const userData = firestoreDocument.data();
+            resolve({ user: userData });
           })
           .catch(function (_error) {
-            resolve({ error: ErrorCode.serverError })
-          })
+            resolve({ error: ErrorCode.serverError });
+          });
       })
       .catch(_error => {
-        resolve({ error: ErrorCode.invalidSMSCode })
-      })
-  })
-}
+        resolve({ error: ErrorCode.invalidSMSCode });
+      });
+  });
+};
 
 export const registerWithPhoneNumber = (
   userDetails,
@@ -359,26 +382,26 @@ export const registerWithPhoneNumber = (
     profilePictureURL,
     location,
     signUpLocation,
-  } = userDetails
-  const credential = auth.PhoneAuthProvider.credential(verificationID, smsCode)
+  } = userDetails;
+  const credential = auth.PhoneAuthProvider.credential(verificationID, smsCode);
   return new Promise(function (resolve, _reject) {
     auth()
       .signInWithCredential(credential)
       .then(async response => {
-        const phoneResponse = await retrieveUserByPhone(phone)
+        const phoneResponse = await retrieveUserByPhone(phone);
         if (phoneResponse?.success) {
-          auth().currentUser.delete()
-          return resolve({ error: ErrorCode.phoneInUse })
+          auth().currentUser.delete();
+          return resolve({ error: ErrorCode.phoneInUse });
         }
-        const usernameResponse = await checkUniqueUsername(username)
+        const usernameResponse = await checkUniqueUsername(username);
 
         if (usernameResponse?.taken) {
-          auth().currentUser.delete()
-          return resolve({ error: ErrorCode.usernameInUse })
+          auth().currentUser.delete();
+          return resolve({ error: ErrorCode.usernameInUse });
         }
 
-        const timestamp = getUnixTimeStamp()
-        const uid = response.user.uid
+        const timestamp = getUnixTimeStamp();
+        const uid = response.user.uid;
         const data = {
           id: uid,
           userID: uid, // legacy reasons
@@ -391,24 +414,24 @@ export const registerWithPhoneNumber = (
           signUpLocation: signUpLocation || '',
           appIdentifier,
           createdAt: timestamp,
-        }
+        };
         usersRef
           .doc(uid)
           .set(data)
           .then(() => {
-            resolve({ user: data })
-          })
+            resolve({ user: data });
+          });
       })
       .catch(error => {
-        console.log(error)
-        let errorCode = ErrorCode.serverError
+        console.log(error);
+        let errorCode = ErrorCode.serverError;
         if (error.code === 'auth/email-already-in-use') {
-          errorCode = ErrorCode.emailInUse
+          errorCode = ErrorCode.emailInUse;
         }
-        resolve({ error: errorCode })
-      })
-  })
-}
+        resolve({ error: errorCode });
+      });
+  });
+};
 
 export const updateProfilePhoto = (userID, profilePictureURL) => {
   return new Promise((resolve, _reject) => {
@@ -416,29 +439,29 @@ export const updateProfilePhoto = (userID, profilePictureURL) => {
       .doc(userID)
       .update({ profilePictureURL: profilePictureURL })
       .then(() => {
-        resolve({ success: true })
+        resolve({ success: true });
       })
       .catch(error => {
-        resolve({ error: error })
-      })
-  })
-}
+        resolve({ error: error });
+      });
+  });
+};
 
 export const fetchAndStorePushTokenIfPossible = async user => {
   try {
-    const settings = await messaging().requestPermission()
+    const settings = await messaging().requestPermission();
     if (settings) {
-      const token = await messaging().getToken()
+      const token = await messaging().getToken();
       updateUser(user.id || user.userID, {
         pushToken: token,
         pushKitToken: '',
         badgeCount: 0,
-      })
+      });
     }
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-}
+};
 
 export const removeUser = userID => {
   return new Promise(resolve => {
@@ -449,23 +472,23 @@ export const removeUser = userID => {
         auth()
           .currentUser.delete()
           .then(() => {
-            resolve({ success: true })
+            resolve({ success: true });
           })
           .catch(error => {
-            let errorCode = ''
+            let errorCode = '';
             if ((error.code = 'auth/requires-recent-login')) {
-              errorCode = ErrorCode.requiresRecentLogin
+              errorCode = ErrorCode.requiresRecentLogin;
             }
-            resolve({ success: false, error: errorCode })
-          })
+            resolve({ success: false, error: errorCode });
+          });
       })
       .catch(error => {
-        console.log(error)
-        resolve({ success: false, error })
-      })
-  })
-}
+        console.log(error);
+        resolve({ success: false, error });
+      });
+  });
+};
 
 export const logout = () => {
-  auth().signOut()
-}
+  auth().signOut();
+};
