@@ -39,8 +39,6 @@ export const sendPasswordResetEmail = email => {
 };
 
 export const checkUniqueUsername = username => {
-  console.log('checkUniqueUsername logging ... ', username);
-
   return new Promise(resolve => {
     if (!username) {
       resolve();
@@ -49,8 +47,6 @@ export const checkUniqueUsername = username => {
       .where('username', '==', username?.toLowerCase())
       .get()
       .then(querySnapshot => {
-        console.log('usersRef logging ... ', querySnapshot);
-
         if (querySnapshot?.docs.length <= 0) {
           // doesn't exist
           resolve({ isUnique: true });
@@ -60,8 +56,6 @@ export const checkUniqueUsername = username => {
         }
       })
       .catch(error => {
-        console.log('usersRef error ... ', error);
-
         reject(error);
       });
   });
@@ -83,17 +77,10 @@ export const registerWithEmail = (userDetails, appIdentifier) => {
     auth()
       .createUserWithEmailAndPassword(email, password)
       .then(async response => {
-        console.log('registerWithEmail logging ... ', response);
-
         const usernameResponse = await checkUniqueUsername(username);
-        console.log('usernameResponse logging ... ', usernameResponse);
 
         if (usernameResponse?.taken) {
           await auth().currentUser.delete();
-          console.log(
-            'usernameResponse?.taken logging ... ',
-            usernameResponse?.taken,
-          );
 
           return resolve({ error: ErrorCode.usernameInUse });
         }
@@ -116,26 +103,18 @@ export const registerWithEmail = (userDetails, appIdentifier) => {
           createdAt: timestamp,
         };
 
-        console.log('uid:', uid);
-        console.log('data:', data);
-
         usersRef
           .doc(uid)
           .set(data)
           .then(s => {
-            console.log('_success:', s);
-
             resolve({ user: data });
           })
           .catch(error => {
-            console.log('_error:', error);
-
             alert(error);
             resolve({ error: ErrorCode.serverError });
           });
       })
       .catch(error => {
-        console.log('_error:', error);
         let errorCode = ErrorCode.serverError;
         if (error.code === 'auth/email-already-in-use') {
           errorCode = ErrorCode.emailInUse;
@@ -172,12 +151,10 @@ export const loginWithEmailAndPassword = async (email, password) => {
             resolve({ user: newUserData });
           })
           .catch(function (_error) {
-            console.log('_error:', _error);
             resolve({ error: ErrorCode.serverError });
           });
       })
       .catch(error => {
-        console.log('error:', error);
         let errorCode = ErrorCode.serverError;
         switch (error.code) {
           case 'auth/wrong-password':
@@ -245,7 +222,6 @@ const signInWithCredential = (credential, appIdentifier, socialAuthType) => {
           });
       })
       .catch(_error => {
-        console.log(_error);
         resolve({ error: ErrorCode.serverError });
       });
   });
@@ -452,7 +428,7 @@ export const fetchAndStorePushTokenIfPossible = async user => {
     const settings = await messaging().requestPermission();
     if (settings) {
       const token = await messaging().getToken();
-      updateUser(user.id || user.userID, {
+      await updateUser(user.id || user.userID, {
         pushToken: token,
         pushKitToken: '',
         badgeCount: 0,

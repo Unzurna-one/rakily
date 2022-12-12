@@ -1,7 +1,8 @@
-import React from 'react'
-import { TouchableOpacity, Image, Text } from 'react-native'
-import { useTheme } from 'dopenative'
-import dynamicStyles from './styles'
+import React from 'react';
+import { Image, Text, TouchableOpacity } from 'react-native';
+import { useTheme } from 'dopenative';
+import dynamicStyles from './styles';
+
 function TNTouchableIcon(props) {
   const {
     onPress,
@@ -17,9 +18,9 @@ function TNTouchableIcon(props) {
     iconRef,
     onLayout,
     disabled = false,
-  } = props
-  const { theme, appearance } = useTheme()
-  const styles = dynamicStyles(theme, appearance)
+  } = props;
+  const { theme, appearance } = useTheme();
+  const styles = dynamicStyles(theme, appearance);
 
   return (
     <TouchableOpacity
@@ -34,7 +35,7 @@ function TNTouchableIcon(props) {
       <Image style={[styles.Image, imageStyle]} source={iconSource} />
       {renderTitle && <Text style={[styles.title, titleStyle]}>{title}</Text>}
     </TouchableOpacity>
-  )
+  );
 }
 
-export default TNTouchableIcon
+export default TNTouchableIcon;

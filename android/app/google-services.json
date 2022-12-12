@@ -15,34 +15,13 @@
       },
       "oauth_client": [
         {
-          "client_id": "24542785835-4ncfbkcgh7tjs8kujflpmualq18qnpln.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAum0VMVHW5-wXDp-DqpiyUReHu8_v3RGo"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "24542785835-4ncfbkcgh7tjs8kujflpmualq18qnpln.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:24542785835:android:32759d74c7cadb85fe956e",
-        "android_client_info": {
-          "package_name": "com.unzurna.raki"
-        }
-      },
-      "oauth_client": [
+          "client_id": "24542785835-v3b6v88t2vssd6odmnbp5i0vqkst9ke2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rakily",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
         {
           "client_id": "24542785835-4ncfbkcgh7tjs8kujflpmualq18qnpln.apps.googleusercontent.com",
           "client_type": 3

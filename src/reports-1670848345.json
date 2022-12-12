@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "format": "JSON",
+    "version": "1.1.0",
+    "projectId": "raki-d74a3",
+    "resourcePath": [
+      "reports"
+    ],
+    "recursive": false,
+    "creationTime": 1670848351,
+    "app": "firefoo"
+  },
+  "data": {
+    "RVMhr8pCIHSPndgQ7vSJ": {
+      "poster_path": "/aAmfIX3TT40zUHGcCKrlOZRKC7u.jpg",
+      "adult": false,
+      "overview": "Growing up can be a bumpy road, and it's no exception for Riley, who is uprooted from her Midwest life when her father starts a new job in San Francisco. Like all of us, Riley is guided by her emotions - Joy, Fear, Anger, Disgust and Sadness. The emotions live in Headquarters, the control center inside Riley's mind, where they help advise her through everyday life. As Riley and her emotions struggle to adjust to a new life in San Francisco, turmoil ensues in Headquarters. Although Joy, Riley's main and most important emotion, tries to keep things positive, the emotions conflict on how best to navigate a new city, house and school.",
+      "release_date": "2015-06-19",
+      "id": 150540,
+      "original_title": "Inside Out",
+      "original_language": "en",
+      "title": "Inside Out",
+      "backdrop_path": "/szytSpLAyBh3ULei3x663mAv5ZT.jpg",
+      "popularity": 14.148873,
+      "vote_count": 2064,
+      "video": false,
+      "vote_average": 8.07
+    },
+    "UzIvVRXxJYBGgpEWfSbX": {
+      "__collections__": {}
+    }
+  }
+}

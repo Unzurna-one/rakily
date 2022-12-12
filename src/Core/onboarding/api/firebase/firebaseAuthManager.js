@@ -57,26 +57,19 @@ const createAccountWithEmailAndPassword = (userDetails, appConfig) => {
   const { photoFile } = userDetails;
 
   const accountCreationTask = userData => {
-    console.log('>>>>>>>>>>> userData ... ', userData);
-
     return new Promise((resolve, _reject) => {
       authAPI
         .registerWithEmail(userData, appConfig.appIdentifier)
         .then(async response => {
-          console.log('registerWithEmail logging ... ', response);
-
           if (response.error) {
             resolve({ error: response.error });
           } else {
             // We created the user succesfully, time to upload the profile photo and update the users table with the correct URL
             let user = response.user;
-            console.log('user registerWithEmail logging ... ', user);
 
             if (photoFile) {
               storageAPI.processAndUploadMediaFile(photoFile).then(response => {
                 if (response.error) {
-                  console.log('processAndUploadMediaFile  logging ... ', user);
-
                   // if account gets created, but photo upload fails, we still log the user in
                   resolve({
                     nonCriticalError: response.error,
@@ -89,8 +82,6 @@ const createAccountWithEmailAndPassword = (userDetails, appConfig) => {
                   authAPI
                     .updateProfilePhoto(user.id, response.downloadURL)
                     .then(_result => {
-                      console.log('updateProfilePhoto  logging ... ', user);
-
                       resolve({
                         user: {
                           ...user,
@@ -118,7 +109,6 @@ const createAccountWithEmailAndPassword = (userDetails, appConfig) => {
       ...userDetails,
       profilePictureURL: defaultProfilePhotoURL,
     };
-    console.log('return new Promise( userData logging ... ', userData);
 
     accountCreationTask(userData).then(response => {
       if (response.error) {
